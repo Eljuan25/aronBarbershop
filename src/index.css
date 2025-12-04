@@ -906,3 +906,20 @@ header nav ul {
 
 
 
+/* HACE QUE SEA FÁCIL TOCAR EN CELULAR */
+.fc-timegrid-event {
+  min-height: 50px !important;     /* ← más alto = más fácil de tocar */
+  margin: 2px 4px !important;      /* ← espacio entre eventos */
+  border-radius: 12px !important;
+  cursor: pointer;
+  touch-action: manipulation;      /* ← clave para móviles */
+}
+
+/* En móviles hace los eventos aún más grandes */
+@media (max-width: 768px) {
+  .fc-timegrid-event {
+    min-height: 70px !important;
+    font-size: 1rem !important;
+    padding: 8px !important;
+  }
+}

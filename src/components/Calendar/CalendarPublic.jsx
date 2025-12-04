@@ -1,107 +1,122 @@
-import { useState } from 'react'
-import FullCalendar from '@fullcalendar/react'
-import timeGridPlugin from '@fullcalendar/timegrid'
-import esLocale from '@fullcalendar/core/locales/es'
+// src/components/Calendar/CalendarPublic.jsx
+import { useState, useEffect } from 'react';
+import FullCalendar from '@fullcalendar/react';
+import timeGridPlugin from '@fullcalendar/timegrid';
+import interactionPlugin from '@fullcalendar/interaction';
+import esLocale from '@fullcalendar/core/locales/es';
+import { db } from '../../firebase';
+import { collection, getDocs } from "firebase/firestore";
 
 export default function CalendarPublic() {
-  const [citas] = useState([
-    {
-      id: "1",
-      title: "OCUPADO",
-      start: "2025-11-20T10:00:00",
-      end: "2025-11-20T10:30:00",
-      backgroundColor: "#ef4444",
-      borderColor: "#ef4444",
-      textColor: "white"
-    },
-    {
-      id: "2",
-      title: "DISPONIBLE",
-      start: "2025-11-20T11:00:00",
-      end: "2025-11-20T11:30:00",
-      backgroundColor: "#22c55e",
-      borderColor: "#22c55e",
-      textColor: "white"
-    }
-  ])
+  const [events, setEvents] = useState([]);
+  const [eventoActivo, setEventoActivo] = useState(null);
 
-  const [eventoActivo, setEventoActivo] = useState(null)
+  useEffect(() => {
+    cargarHorarios();
+  }, []);
+
+  const cargarHorarios = async () => {
+    const snap = await getDocs(collection(db, "horarios"));
+    const lista = snap.docs.map(d => {
+      const data = d.data();
+      return {
+        id: d.id,
+        title: data.estado === "ocupado" ? "OCUPADO" : "LIBRE",
+        start: `${data.fecha}T${data.hora}:00`,
+        backgroundColor: data.estado === "ocupado" ? "#ef4444" : "#22c55e",
+        borderColor: data.estado === "ocupado" ? "#ef4444" : "#22c55e",
+        textColor: "white"
+      };
+    });
+    setEvents(lista);
+  };
+
+  // Solo para resaltar al hacer click (opcional, queda bonito)
+  const handleEventClick = (info) => {
+    if (info.event.title === "OCUPADO") {
+      setEventoActivo(eventoActivo === info.event.id ? null : info.event.id);
+    }
+  };
 
   return (
     <div className="p-4 md:p-10 bg-black text-white min-h-screen">
-      <h2 className="text-2xl md:text-3xl font-bold mb-6 text-center">
+      <h2 className="text-3xl font-bold text-center mb-8 text-yellow-500">
         Agenda de Citas
       </h2>
+      
+      {/* Mensaje claro para el público */}
+      <div className="text-center mb-6 text-lg opacity-90">
+        <p>Las citas solo las agenda el administrador</p>
+        <p className="text-yellow-400 mt-2">¡Contáctame por WhatsApp para agendar la tuya!</p>
+        <a 
+          href="https://wa.me/523411617881" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="inline-block mt-4 px-6 py-3 bg-green-600 rounded-full font-bold hover:bg-green-700 transition"
+        >
+          Escribir por WhatsApp
+        </a>
+      </div>
 
-      <div className="bg-zinc-900 rounded-3xl p-4 md:p-6 shadow-2xl">
+      <div className="bg-zinc-900 rounded-3xl p-4 shadow-2xl">
         <FullCalendar
-          plugins={[timeGridPlugin]}
+          plugins={[timeGridPlugin, interactionPlugin]}
           initialView="timeGridWeek"
           locale={esLocale}
+          headerToolbar={{
+            left: 'prev,next today',
+            center: 'title',
+            right: 'timeGridWeek,timeGridDay'
+          }}
           slotDuration="00:30:00"
           slotMinTime="09:00:00"
-          slotMaxTime="20:00:00"
+          slotMaxTime="24:00:00"
           height="auto"
           nowIndicator={true}
-          events={citas}
+          events={events}
 
-          eventClick={(info) => {
-            // Si vuelves a darle click, se quita
-            setEventoActivo(
-              eventoActivo === info.event.id ? null : info.event.id
-            )
-          }}
+          // ← AQUÍ ESTÁ EL CAMBIO CLAVE:
+          selectable={false}           // Nadie puede seleccionar
+          select={undefined}           // Quitamos la función
+          selectAllow={() => false}     // Por si acaso
 
-          eventClassNames={(arg) => {
-            return eventoActivo === arg.event.id
-              ? ["evento-activo"]
-              : []
-          }}
+          eventClick={handleEventClick}
+          eventClassNames={(arg) => eventoActivo === arg.event.id ? ["evento-activo"] : []}
+
+          // Para que no se pueda hacer nada con touch/drag
+          selectOverlap={false}
+          eventOverlap={false}
+          slotEventOverlap={false}
+          editable={false}
+          eventStartEditable={false}
+          eventDurationEditable={false}
         />
       </div>
 
-      {/* ESTILOS */}
-      <style>
-        {`
+      <style jsx>{`
         .fc-timegrid-event {
-          border-radius: 14px;
-          padding: 4px;
-          text-align: center;
-          font-size: 0.9rem;
-          font-weight: 700;
-          transition: all 0.3s ease-in-out;
-          cursor: pointer;
+          min-height: 60px !important;
+          margin: 4px 6px !important;
+          border-radius: 16px !important;
+          font-weight: bold;
+          touch-action: manipulation;
+          cursor: default !important;
         }
-
-        /* 🔥 CUANDO SE SELECCIONA */
         .evento-activo {
-          transform: scale(1.2) !important;
-          z-index: 10;
-          box-shadow: 0 0 20px rgba(255,255,255,0.4);
+          transform: scale(1.4) !important;
+          z-index: 999 !important;
+          box-shadow: 0 0 30px rgba(255,255,255,0.6) !important;
         }
-
-        .fc-theme-standard td,
-        .fc-theme-standard th {
-          border: 1px solid #27272a;
-        }
-
-        .fc {
-          background-color: transparent !important;
-        }
-
-        .fc-timegrid-slot-label {
-          font-size: 1.1rem !important;
-          font-weight: 700;
-          color: #ffffff !important;
-        }
-
         @media (max-width: 768px) {
-          .evento-activo {
-            transform: scale(1.7) !important;
+          .fc-timegrid-event { 
+            min-height: 80px !important; 
+            font-size: 1rem !important; 
+          }
+          .evento-activo { 
+            transform: scale(1.8) !important; 
           }
         }
-        `}
-      </style>
+      `}</style>
     </div>
-  )
+  );
 }

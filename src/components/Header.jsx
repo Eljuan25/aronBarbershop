@@ -9,7 +9,7 @@ function Header() {
         <ul>
           <li><Link to="/">Inicio</Link></li>
 
-          <li><a href="/#Gallery">Galería</a></li>
+          <li><Link to="/gallery">Galería</Link></li>
 
           {/* AQUÍ está el cambio importante */}
           <li>

@@ -6,6 +6,9 @@ import Gallery from './components/Gallery.jsx';
 import Footer from './components/Footer.jsx';
 import Citas from './components/Citas.jsx';
 import Contacto from './components/Contacto.jsx';
+import CalendarAdmin from './components/Calendar/CalendarAdmin.jsx';
+import AdminGallery from './components/Calendar/AdminGallery';
+import GalleryPublic from './components/GalleryPublic';
 
 
 function App() {
@@ -27,7 +30,10 @@ function App() {
         <Route path="/citas" element={<Citas />} />
         <Route path='/contacto' element={<Contacto />} />
         <Route path="/services" element={<Services />} />
+        <Route path="/gallery" element={<GalleryPublic />} />
 
+        <Route path="/admin2025" element={<CalendarAdmin />} />
+        <Route path="/galeria-admin" element={<AdminGallery />} />
       </Routes>
     </Router>
   );
