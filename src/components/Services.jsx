@@ -5,9 +5,9 @@ import barberImg from "../assets/Aronks.jpg";
 
 const Services = () => {
   const services = [
-    { name: "Corte de cabello", price: "$130" },
+    { name: "Corte de cabello", price: "$150" },
     { name: "Corte de barba", price: "$80" },
-    { name: "Corte y barba", price: "$180" },
+    { name: "Corte y barba", price: "$200" },
     { name: "Arreglado de ceja", price: "$40" },
     { name: "Recortes", price: "$80" },
   ];
