@@ -45,16 +45,13 @@ export default function CalendarAdmin() {
   /* =========================
      CARGAR CITAS
   ========================== */
-  const cargarCitas = async () => {
-    const q = query(
-      collection(db, "horarios"),
-      where("estado", "==", "ocupado")
-    );
-
-    const snap = await getDocs(q);
+    const cargarCitas = async () => {
+    const snap = await getDocs(collection(db, "horarios"));
 
     const lista = snap.docs.map((d) => {
       const data = d.data();
+
+      const startDate = new Date(`${data.fecha}T${data.hora}:00`);
 
       let color = "#ef4444";
       if (data.cliente?.toUpperCase().includes("DESCANSO")) {
@@ -64,7 +61,7 @@ export default function CalendarAdmin() {
       return {
         id: d.id,
         title: data.cliente,
-        start: `${data.fecha}T${data.hora}:00`,
+        start: startDate, // ✅ AQUÍ ESTÁ LA CLAVE
         backgroundColor: color,
         borderColor: color,
         textColor: "white"
@@ -73,6 +70,7 @@ export default function CalendarAdmin() {
 
     setEvents(lista);
   };
+
 
   /* =========================
      CREAR HORARIO

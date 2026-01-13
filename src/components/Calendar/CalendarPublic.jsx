@@ -15,21 +15,26 @@ export default function CalendarPublic() {
     cargarHorarios();
   }, []);
 
-  const cargarHorarios = async () => {
+    const cargarHorarios = async () => {
     const snap = await getDocs(collection(db, "horarios"));
+
     const lista = snap.docs.map(d => {
       const data = d.data();
+      const startDate = new Date(`${data.fecha}T${data.hora}:00`);
+
       return {
         id: d.id,
-        title: data.estado === "ocupado" ? "OCUPADO" : "LIBRE",
-        start: `${data.fecha}T${data.hora}:00`,
-        backgroundColor: data.estado === "ocupado" ? "#ef4444" : "#22c55e",
-        borderColor: data.estado === "ocupado" ? "#ef4444" : "#22c55e",
+        title: "OCUPADO",
+        start: startDate, // ✅
+        backgroundColor: "#ef4444",
+        borderColor: "#ef4444",
         textColor: "white"
       };
     });
+
     setEvents(lista);
   };
+
 
   // Solo para resaltar al hacer click (opcional, queda bonito)
   const handleEventClick = (info) => {
