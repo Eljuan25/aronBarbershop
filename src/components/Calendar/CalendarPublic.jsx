@@ -76,10 +76,9 @@ export default function CalendarPublic() {
           nowIndicator={true}
           events={events}
 
-          // ← AQUÍ ESTÁ EL CAMBIO CLAVE:
           selectable={false}           // Nadie puede seleccionar
-          select={undefined}           // Quitamos la función
-          selectAllow={() => false}     // Por si acaso
+          select={undefined}           
+          selectAllow={() => false}     
 
           eventClick={handleEventClick}
           eventClassNames={(arg) => eventoActivo === arg.event.id ? ["evento-activo"] : []}
