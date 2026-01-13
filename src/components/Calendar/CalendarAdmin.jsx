@@ -23,22 +23,35 @@ import {
 
 export default function CalendarAdmin() {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [events, setEvents] = useState([]);
 
-  
+  /* =========================
+     AUTH + CARGA SEGURA
+  ========================== */
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
+    const unsub = onAuthStateChanged(auth, async (u) => {
       setUser(u);
-      if (u) cargarCitas();
+      setLoading(false);
+      if (u) {
+        await cargarCitas();
+      }
     });
     return () => unsub();
   }, []);
 
- 
+  /* =========================
+     CARGAR CITAS
+  ========================== */
   const cargarCitas = async () => {
-    const snap = await getDocs(collection(db, "horarios"));
+    const q = query(
+      collection(db, "horarios"),
+      where("estado", "==", "ocupado")
+    );
+
+    const snap = await getDocs(q);
 
     const lista = snap.docs.map((d) => {
       const data = d.data();
@@ -61,7 +74,9 @@ export default function CalendarAdmin() {
     setEvents(lista);
   };
 
-
+  /* =========================
+     CREAR HORARIO
+  ========================== */
   const handleSelect = async (info) => {
     if (!user) return;
 
@@ -77,8 +92,10 @@ export default function CalendarAdmin() {
     const q = query(
       collection(db, "horarios"),
       where("fecha", "==", fecha),
-      where("hora", "==", hora)
+      where("hora", "==", hora),
+      where("estado", "==", "ocupado")
     );
+
     const existe = await getDocs(q);
     if (!existe.empty) {
       alert("Ese horario ya está ocupado");
@@ -90,7 +107,8 @@ export default function CalendarAdmin() {
         fecha,
         hora,
         cliente: "DESCANSO",
-        estado: "ocupado"
+        estado: "ocupado",
+        createdAt: new Date()
       });
     }
 
@@ -102,31 +120,55 @@ export default function CalendarAdmin() {
         fecha,
         hora,
         cliente: nombre.trim(),
-        estado: "ocupado"
+        estado: "ocupado",
+        createdAt: new Date()
       });
     }
 
-    cargarCitas();
+    await cargarCitas();
   };
 
-  
+  /* =========================
+     BORRAR / LIBERAR
+  ========================== */
   const handleEventClick = async (info) => {
     if (!user) return;
 
     const accion = prompt(
-      `Cita: ${info.event.title}\n\n1 → Liberar horario\n2 → Borrar para siempre\n3 → Cancelar`,
+      `Cita: ${info.event.title}\n\n1 → Liberar horario\n2 → Borrar definitivamente\n3 → Cancelar`,
       "1"
     );
+
     if (!accion || accion === "3") return;
 
     if (accion === "1" || accion === "2") {
-      if (accion === "2" && !window.confirm("¿Borrar definitivamente?")) return;
+      if (accion === "2" && !window.confirm("¿Seguro que deseas borrar?")) return;
       await deleteDoc(doc(db, "horarios", info.event.id));
-      cargarCitas();
+      await cargarCitas();
     }
   };
 
- 
+  /* =========================
+     LOADING
+  ========================== */
+  if (loading) {
+    return (
+      <div style={{
+        height: "100vh",
+        background: "#000",
+        color: "white",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center"
+      }}>
+        Cargando sesión...
+      </div>
+    );
+  }
+
+  /* =========================
+     LOGIN
+  ========================== */
   if (!user) {
     return (
       <div style={{
@@ -178,7 +220,9 @@ export default function CalendarAdmin() {
     );
   }
 
-
+  /* =========================
+     CALENDARIO
+  ========================== */
   return (
     <div style={{ padding: 20, background: "#111", minHeight: "100vh", color: "white" }}>
       <button
@@ -188,7 +232,8 @@ export default function CalendarAdmin() {
           padding: "10px 20px",
           border: "none",
           borderRadius: 8,
-          color: "white"
+          color: "white",
+          marginBottom: 15
         }}
       >
         Cerrar sesión
